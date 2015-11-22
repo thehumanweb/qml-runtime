@@ -1,6 +1,6 @@
-/* 
-* Copyright (C) 2015 Siteshwar Vashisht <siteshwar@gmail.com>
-* 
+/*
+* Copyright (C) 2015 Lucien Xu <sfietkonstantin@free.fr>
+*
 * This library is free software; you can redistribute it and/or modify it
 * under the terms of the GNU Lesser General Public License as published by
 * the Free Software Foundation; either version 2.1 of the License, or
@@ -16,21 +16,29 @@
 * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 */
 
-#ifndef IPFSONLYURLINTERCEPTOR_H
-#define IPFSONLYURLINTERCEPTOR_H
+#ifndef QOBJECTPTR_H
+#define QOBJECTPTR_H
 
-#include <QQmlAbstractUrlInterceptor>
-#include <set>
+#include <memory>
+#include <QObject>
 
-class IpfsOnlyUrlInterceptor : public QQmlAbstractUrlInterceptor
+/**
+ * @brief A deleter for QObjects
+ */
+template<class T>
+class QObjectDeleter
 {
 public:
-    explicit IpfsOnlyUrlInterceptor() = default;
-    void lock();
-    QUrl intercept(const QUrl &path, QQmlAbstractUrlInterceptor::DataType type) override;
-private:
-     bool m_locked {false};
-     std::set<QUrl> m_whitelisted {};
+    void operator()(T *object)
+    {
+        object->deleteLater();
+    }
 };
 
-#endif
+/**
+ * QObject based std::unique_ptr
+ */
+template<class T>
+using QObjectPtr = std::unique_ptr<T, QObjectDeleter<T>>;
+
+#endif // QOBJECTPTR_H

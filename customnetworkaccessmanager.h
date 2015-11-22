@@ -25,19 +25,19 @@
 class CustomNetworkAccessManagerFactory : public QQmlNetworkAccessManagerFactory
 {
 public:
-    explicit CustomNetworkAccessManagerFactory();
+    explicit CustomNetworkAccessManagerFactory() = default;
     QNetworkAccessManager * create(QObject *parent) override;
 };
 
 class CustomNetworkAccessManager : public QNetworkAccessManager
 {
 public:
-    explicit CustomNetworkAccessManager(QObject *parent=0);
+    explicit CustomNetworkAccessManager(QObject *parent = nullptr);
 protected:
     QNetworkReply * createRequest(Operation operation, const QNetworkRequest &request,
                                   QIODevice *outgoingData);
 private:
-    bool isLocalHost(QString);
+    bool isLocalHost(const QString &host);
 };
 
 #endif

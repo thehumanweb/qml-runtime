@@ -31,57 +31,58 @@ QmlRuntime::QmlRuntime(int &argc, char *argv[])
 
 int QmlRuntime::startup()
 {
-    QQmlEngine *engine = new QQmlEngine;
-    IpfsOnlyUrlInterceptor *interceptor = new IpfsOnlyUrlInterceptor;
-    QQmlComponent *preloadcomponent = 0; 
+    m_engine.reset(new QQmlEngine());
+    m_urlInterceptor.reset(new IpfsOnlyUrlInterceptor()) ;
+    m_networkAccessManagerFactory.reset(new CustomNetworkAccessManagerFactory());
 
-    engine->setNetworkAccessManagerFactory(new CustomNetworkAccessManagerFactory); 
-    engine->setUrlInterceptor(interceptor);
+    m_engine->setNetworkAccessManagerFactory(m_networkAccessManagerFactory.get());
+    m_engine->setUrlInterceptor(m_urlInterceptor.get());
 
-    preloadcomponent = new QQmlComponent(engine, QUrl::fromLocalFile("preload.qml"), QQmlComponent::PreferSynchronous);	
-    
-    if (preloadcomponent->isError()) {
-        foreach (const QQmlError &e, preloadcomponent->errors()) {
+    QQmlComponent *preloadComponent = new QQmlComponent(m_engine.get(),
+                                                        QUrl::fromLocalFile("preload.qml"),
+                                                        QQmlComponent::PreferSynchronous);
+    if (preloadComponent->isError()) {
+        foreach (const QQmlError &e, preloadComponent->errors()) {
             qInfo("preload.qml: %s", e.toString().toLatin1().constData());
         }
         qCritical("Failed to load preload.qml, quitting");
     } 
     
-    m_context = new QQmlContext(engine);
-    QObject *obj = preloadcomponent->create(m_context);
+    QQmlContext *context = m_engine->rootContext(); //new QQmlContext(engine);
+    QObject *obj = preloadComponent->create(context);
     if (!obj) {
         qCritical("Failed to create preload object");
     }
     /* now in cache */
     delete obj;
     obj = 0;
-    preloadcomponent->deleteLater(); 
-    preloadcomponent = 0;
+    preloadComponent->deleteLater();
+    preloadComponent = 0;
 
     // now we should switch to another user ? or in start?
     // now sandboxed for URIs
-    interceptor->lock();
+    m_urlInterceptor->lock();
 
-    this->m_appcomponent = new QQmlComponent(engine, QUrl(this->arguments().at(1)));
-    if (this->m_appcomponent->isLoading()) {
-        QObject::connect(this->m_appcomponent, SIGNAL(statusChanged(QQmlComponent::Status)),
-                         this, SLOT(continueLoading()));
+    m_appComponent = new QQmlComponent(m_engine.get(), QUrl(this->arguments().at(1)));
+    if (m_appComponent->isLoading()) {
+        QObject::connect(m_appComponent, &QQmlComponent::statusChanged, [this](QQmlComponent::Status status) {
+            switch (status) {
+            case QQmlComponent::Ready:
+            {
+                QObject *appObject = m_appComponent->create(m_engine->rootContext());
+                if (appObject == nullptr) {
+                    qCritical("Failed to create app object");
+                }
+                break;
+            }
+            default:
+                foreach (const QQmlError &e, m_appComponent->errors()) {
+                    qInfo("App component: %s", e.toString().toLatin1().constData());
+                }
+                qCritical("Failed to load app component, quitting");
+                break;
+            }
+        });
     }
     return this->exec();
-}
-
-void QmlRuntime::continueLoading()
-{
-    if (this->m_appcomponent->isError()) {
-        foreach (const QQmlError &e, this->m_appcomponent->errors()) {
-            qInfo("App component: %s", e.toString().toLatin1().constData());
-        }
-        qCritical("Failed to load app component, quitting");
-    }
-    
-    QObject *appobj = this->m_appcomponent->create(m_context);
- 
-    if (!appobj) {
-        qCritical("Failed to create app object");
-    }
 }

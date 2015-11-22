@@ -21,27 +21,20 @@
 void IpfsOnlyUrlInterceptor::lock()
 {
     qInfo("Sandbox is now locked");
-    foreach (const QUrl &url, this->m_whitelisted) {
+    for (const QUrl &url : m_whitelisted) {
         qInfo(" whitelisted %s", url.toString().toLatin1().constData());
     }
-
-    m_sandboxLocked = true;
+    m_locked = true;
 }
 
 QUrl IpfsOnlyUrlInterceptor::intercept(const QUrl &path, QQmlAbstractUrlInterceptor::DataType type)
 {
-    qInfo("Intercepted %s, %i, sandbox is %s", path.toString().toLatin1().constData(), type, m_sandboxLocked ? "locked" : "unlocked");
-    if (!m_sandboxLocked) {
-        m_whitelisted.append(path);
+    qInfo("Intercepted %s, %i, sandbox is %s", path.toString().toLatin1().constData(), type, m_locked ? "locked" : "unlocked");
+    if (!m_locked) {
+        m_whitelisted.insert(path);
         return path;
     } else {
-        bool isWhiteListed = false;
-        foreach (const QUrl &url, this->m_whitelisted) {
-            if (url == path) {
-                isWhiteListed = true;
-                break;
-            }
-        }
+        bool isWhiteListed = (m_whitelisted.find(path) != std::end(m_whitelisted));
         if (isWhiteListed) {
             qInfo("%s is whitelisted, letting through", path.toString().toLatin1().constData());
             return path;

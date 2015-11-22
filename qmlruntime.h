@@ -20,9 +20,10 @@
 #define QMLRUNTIME_H
 
 #include <QGuiApplication>
-
-class QQmlComponent;
-class QQmlContext;
+#include <QQmlEngine>
+#include <QQmlNetworkAccessManagerFactory>
+#include "qobjectptr.h"
+#include "ipfsonlyurlinterceptor.h"
 
 class QmlRuntime : public QGuiApplication
 {
@@ -31,10 +32,10 @@ public:
     QmlRuntime(int &argc, char *argv[]);
     int startup();
 private:
-    QQmlComponent *m_appcomponent;
-    QQmlContext *m_context;
-public slots:
-    void continueLoading();
+    std::unique_ptr<IpfsOnlyUrlInterceptor> m_urlInterceptor {};
+    std::unique_ptr<QQmlNetworkAccessManagerFactory> m_networkAccessManagerFactory {};
+    QObjectPtr<QQmlEngine> m_engine {};
+    QQmlComponent *m_appComponent {nullptr};
 };
 
 #endif

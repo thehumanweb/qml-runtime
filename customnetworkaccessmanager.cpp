@@ -20,11 +20,6 @@
 #include <QNetworkRequest>
 #include "customnetworkaccessmanager.h"
 
-CustomNetworkAccessManagerFactory::CustomNetworkAccessManagerFactory()
-    : QQmlNetworkAccessManagerFactory()
-{
-}
-
 QNetworkAccessManager * CustomNetworkAccessManagerFactory::create(QObject *parent)
 {
     return new CustomNetworkAccessManager(parent);
@@ -35,23 +30,23 @@ CustomNetworkAccessManager::CustomNetworkAccessManager(QObject *parent)
 {
 }
 
-QNetworkReply *CustomNetworkAccessManager::createRequest(Operation operation,
-                                                         const QNetworkRequest &request,
-                                                         QIODevice *outgoingData)
+QNetworkReply * CustomNetworkAccessManager::createRequest(Operation operation,
+                                                          const QNetworkRequest &request,
+                                                          QIODevice *outgoingData)
 {
     QUrl url = request.url();
     QNetworkRequest newRequest(request);
   
     if (url.scheme() != "http" || !isLocalHost(url.host()) || url.port() != 8080) {
+        // Access denied. Redirect to an IPFS object representing ipfs error
         qWarning() << "Application is trying to access non-IPFS service. Host is "
                    << url.scheme() << "://" <<url.host() << ":" << url.port();
-        // Access denied. Redirect to an IPFS object representing ipfs error
-        newRequest.setUrl(QUrl(QString("")));
+        newRequest.setUrl(QUrl());
     }
     return QNetworkAccessManager::createRequest(operation, newRequest, outgoingData);
 }
 
-bool CustomNetworkAccessManager::isLocalHost(QString host)
+bool CustomNetworkAccessManager::isLocalHost(const QString &host)
 {
     return host == "localhost" || host == "127.0.0.1";
 }
