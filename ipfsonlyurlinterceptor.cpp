@@ -17,26 +17,29 @@
 */
 
 #include "ipfsonlyurlinterceptor.h"
+#include <QtCore/QLoggingCategory>
+
+static const QLoggingCategory logger {"url-interceptor"};
 
 void IpfsOnlyUrlInterceptor::lock()
 {
-    qInfo("Sandbox is now locked");
+    qCInfo(logger) << "Sandbox is now locked";
     for (const QUrl &url : m_whitelisted) {
-        qInfo(" whitelisted %s", url.toString().toLatin1().constData());
+        qCInfo(logger) << "Whitelisted" << url.toString();
     }
     m_locked = true;
 }
 
 QUrl IpfsOnlyUrlInterceptor::intercept(const QUrl &path, QQmlAbstractUrlInterceptor::DataType type)
 {
-    qInfo("Intercepted %s, %i, sandbox is %s", path.toString().toLatin1().constData(), type, m_locked ? "locked" : "unlocked");
+    qCInfo(logger) << "Intercepted" << path.toString() << "Type" << type << "Sandbox" << (m_locked ? "locked" : "unlocked");
     if (!m_locked) {
         m_whitelisted.insert(path);
         return path;
     } else {
         bool isWhiteListed = (m_whitelisted.find(path) != std::end(m_whitelisted));
         if (isWhiteListed) {
-            qInfo("%s is whitelisted, letting through", path.toString().toLatin1().constData());
+            qCInfo(logger) << path.toString() << "is whitelisted, letting through";
             return path;
         }
     }
@@ -48,7 +51,7 @@ QUrl IpfsOnlyUrlInterceptor::intercept(const QUrl &path, QQmlAbstractUrlIntercep
             redirected.setScheme("http");
             redirected.setPort(8080);
             redirected.setHost("localhost");
-            qInfo("Redirected to %s", redirected.toString().toLatin1().constData());
+            qCInfo(logger) << "Redirected to" << redirected.toString();
             return redirected;
         } else if (path.path().startsWith("/ipns/")) {
             QUrl redirected(path);
@@ -56,13 +59,13 @@ QUrl IpfsOnlyUrlInterceptor::intercept(const QUrl &path, QQmlAbstractUrlIntercep
             redirected.setScheme("http");
             redirected.setPort(8080);
             redirected.setHost("localhost");
-            qInfo("Redirected to %s", redirected.toString().toLatin1().constData());
+            qCInfo(logger) << "Redirected to" << redirected.toString();
             return redirected;
         }
     }
 
     QUrl notpermitted("notpermitted://");
-    qInfo("Redirected to %s", notpermitted.toString().toLatin1().constData());
+    qCInfo(logger) << "Redirected to" << notpermitted.toString();
     return notpermitted;
 }
 
