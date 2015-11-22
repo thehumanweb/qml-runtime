@@ -19,10 +19,14 @@
 #include <QQmlEngine>
 #include <QQmlComponent>
 #include <QQmlContext>
+#include <QLoggingCategory>
 
 #include "customnetworkaccessmanager.h"
 #include "ipfsonlyurlinterceptor.h"
 #include "qmlruntime.h"
+
+static const QLoggingCategory logger {"qmlruntime"};
+
 
 QmlRuntime::QmlRuntime(int &argc, char *argv[])
     : QGuiApplication(argc, argv)
@@ -37,52 +41,65 @@ int QmlRuntime::startup()
 
     m_engine->setNetworkAccessManagerFactory(m_networkAccessManagerFactory.get());
     m_engine->setUrlInterceptor(m_urlInterceptor.get());
+    QObject::connect(m_engine.get(), &QQmlEngine::quit, QCoreApplication::quit);
 
-    QQmlComponent *preloadComponent = new QQmlComponent(m_engine.get(),
-                                                        QUrl::fromLocalFile("preload.qml"),
-                                                        QQmlComponent::PreferSynchronous);
-    if (preloadComponent->isError()) {
-        foreach (const QQmlError &e, preloadComponent->errors()) {
-            qInfo("preload.qml: %s", e.toString().toLatin1().constData());
-        }
-        qCritical("Failed to load preload.qml, quitting");
-    } 
-    
-    QQmlContext *context = m_engine->rootContext(); //new QQmlContext(engine);
-    QObject *obj = preloadComponent->create(context);
-    if (!obj) {
-        qCritical("Failed to create preload object");
-    }
-    /* now in cache */
-    delete obj;
-    obj = 0;
-    preloadComponent->deleteLater();
-    preloadComponent = 0;
+    preload();
 
-    // now we should switch to another user ? or in start?
-    // now sandboxed for URIs
-    m_urlInterceptor->lock();
-
-    m_appComponent = new QQmlComponent(m_engine.get(), QUrl(this->arguments().at(1)));
-    if (m_appComponent->isLoading()) {
-        QObject::connect(m_appComponent, &QQmlComponent::statusChanged, [this](QQmlComponent::Status status) {
+    QQmlComponent *component = new QQmlComponent(m_engine.get(), QUrl(this->arguments().at(1)));
+    if (component->isLoading()) {
+        QObject::connect(component, &QQmlComponent::statusChanged, [this, component](QQmlComponent::Status status) {
             switch (status) {
             case QQmlComponent::Ready:
             {
-                QObject *appObject = m_appComponent->create(m_engine->rootContext());
+                QObject *appObject = component->create(m_engine->rootContext());
                 if (appObject == nullptr) {
-                    qCritical("Failed to create app object");
+                    qCCritical(logger) << "Failed to create application object";
                 }
                 break;
             }
             default:
-                foreach (const QQmlError &e, m_appComponent->errors()) {
-                    qInfo("App component: %s", e.toString().toLatin1().constData());
+                foreach (const QQmlError &error, component->errors()) {
+                    qCInfo(logger) << "Application component:" << error.toString();
                 }
-                qCritical("Failed to load app component, quitting");
+                qCCritical(logger) << "Failed to load application component";
                 break;
             }
         });
     }
     return this->exec();
+}
+
+/**
+ * @brief Preload whitelisted components
+ *
+ * This method will preload whitelisted components
+ * in the QML engine, so that the URL interceptor will
+ * let them be loaded by the engine.
+ *
+ * When the preloaded components are loaded, this method
+ * will lock the URL interceptor.
+ */
+void QmlRuntime::preload()
+{
+    QObjectPtr<QQmlComponent> component (new QQmlComponent(m_engine.get(),
+                                                           QUrl::fromLocalFile("preload.qml"),
+                                                           QQmlComponent::PreferSynchronous));
+
+    if (component->isError()) {
+        foreach (const QQmlError &error, component->errors()) {
+            qCInfo(logger) << "preload.qml:" << error.toString();
+        }
+        qCCritical(logger) << "Failed to load preload.qml";
+    }
+
+    QQmlContext *context = m_engine->rootContext();
+    QObjectPtr<QObject> object (component->create(context));
+
+    if (!object) {
+        qCCritical(logger) << "Failed to create preload object";
+    }
+
+    // now we should switch to another user ? or in start?
+    // now sandboxed for URIs
+    m_urlInterceptor->lock();
 }

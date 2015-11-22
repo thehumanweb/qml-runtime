@@ -32,10 +32,10 @@ public:
     QmlRuntime(int &argc, char *argv[]);
     int startup();
 private:
+    void preload();
     std::unique_ptr<IpfsOnlyUrlInterceptor> m_urlInterceptor {};
     std::unique_ptr<QQmlNetworkAccessManagerFactory> m_networkAccessManagerFactory {};
     QObjectPtr<QQmlEngine> m_engine {};
-    QQmlComponent *m_appComponent {nullptr};
 };
 
 #endif

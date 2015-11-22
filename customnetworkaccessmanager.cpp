@@ -18,7 +18,10 @@
 
 #include <QUrl>
 #include <QNetworkRequest>
+#include <QLoggingCategory>
 #include "customnetworkaccessmanager.h"
+
+static const QLoggingCategory logger {"network-access-manager"};
 
 QNetworkAccessManager * CustomNetworkAccessManagerFactory::create(QObject *parent)
 {
@@ -39,8 +42,8 @@ QNetworkReply * CustomNetworkAccessManager::createRequest(Operation operation,
   
     if (url.scheme() != "http" || !isLocalHost(url.host()) || url.port() != 8080) {
         // Access denied. Redirect to an IPFS object representing ipfs error
-        qWarning() << "Application is trying to access non-IPFS service. Host is "
-                   << url.scheme() << "://" <<url.host() << ":" << url.port();
+        qCWarning(logger) << "Application is trying to access non-IPFS service. Host is "
+                          << url.scheme() << "://" <<url.host() << ":" << url.port();
         newRequest.setUrl(QUrl());
     }
     return QNetworkAccessManager::createRequest(operation, newRequest, outgoingData);
