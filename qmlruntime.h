@@ -24,21 +24,17 @@
 class QQmlComponent;
 class QQmlContext;
 
-class QMLRuntime : public QGuiApplication
+class QmlRuntime : public QGuiApplication
 {
-	Q_OBJECT
-
-	public:
-	QMLRuntime(int argc, char *argv[]) : QGuiApplication(argc, argv)
-	{}
-	
-	int startup();
-	
-	QQmlComponent *appcomponent;
-	QQmlContext *context;
-
-	public slots:
-	void continueLoading();
+    Q_OBJECT
+public:
+    QmlRuntime(int argc, char *argv[]);
+    int startup();
+private:
+    QQmlComponent *m_appcomponent;
+    QQmlContext *m_context;
+public slots:
+    void continueLoading();
 };
 
 #endif

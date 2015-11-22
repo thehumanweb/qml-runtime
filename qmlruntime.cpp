@@ -24,10 +24,15 @@
 #include "ipfsonlyurlinterceptor.h"
 #include "qmlruntime.h"
 
-int QMLRuntime::startup()
+QmlRuntime::QmlRuntime(int argc, char *argv[])
+    : QGuiApplication(argc, argv)
+{
+}
+
+int QmlRuntime::startup()
 {
     QQmlEngine *engine = new QQmlEngine;
-    IPFSOnlyUrlInterceptor *interceptor = new IPFSOnlyUrlInterceptor;    
+    IpfsOnlyUrlInterceptor *interceptor = new IpfsOnlyUrlInterceptor;
     QQmlComponent *preloadcomponent = 0; 
 
     engine->setNetworkAccessManagerFactory(new CustomNetworkAccessManagerFactory); 
@@ -35,19 +40,18 @@ int QMLRuntime::startup()
 
     preloadcomponent = new QQmlComponent(engine, QUrl::fromLocalFile("preload.qml"), QQmlComponent::PreferSynchronous);	
     
-    if (preloadcomponent->isError())
-    {
-	foreach (const QQmlError &e, preloadcomponent->errors())
-	{
-		qInfo("preload.qml: %s", e.toString().toLatin1().constData());
-	}
-	qCritical("Failed to load preload.qml, quitting");
+    if (preloadcomponent->isError()) {
+        foreach (const QQmlError &e, preloadcomponent->errors()) {
+            qInfo("preload.qml: %s", e.toString().toLatin1().constData());
+        }
+        qCritical("Failed to load preload.qml, quitting");
     } 
     
-    context = new QQmlContext(engine);
-    QObject *obj = preloadcomponent->create(context);
-    if (!obj)
-	qCritical("Failed to create preload object");
+    m_context = new QQmlContext(engine);
+    QObject *obj = preloadcomponent->create(m_context);
+    if (!obj) {
+        qCritical("Failed to create preload object");
+    }
     /* now in cache */
     delete obj;
     obj = 0;
@@ -58,30 +62,26 @@ int QMLRuntime::startup()
     // now sandboxed for URIs
     interceptor->lock();
 
-    this->appcomponent = new QQmlComponent(engine, QUrl(this->arguments().at(1)));
-    if (this->appcomponent->isLoading())
-    {
-	 QObject::connect(this->appcomponent, SIGNAL(statusChanged(QQmlComponent::Status)),
+    this->m_appcomponent = new QQmlComponent(engine, QUrl(this->arguments().at(1)));
+    if (this->m_appcomponent->isLoading()) {
+        QObject::connect(this->m_appcomponent, SIGNAL(statusChanged(QQmlComponent::Status)),
                          this, SLOT(continueLoading()));
     }
     return this->exec();
 }
 
-void QMLRuntime::continueLoading()
+void QmlRuntime::continueLoading()
 {
-    if (this->appcomponent->isError())
-    {
-	foreach (const QQmlError &e, this->appcomponent->errors())
-	{
-		qInfo("App component: %s", e.toString().toLatin1().constData());
-	}
-	qCritical("Failed to load app component, quitting"); 
+    if (this->m_appcomponent->isError()) {
+        foreach (const QQmlError &e, this->m_appcomponent->errors()) {
+            qInfo("App component: %s", e.toString().toLatin1().constData());
+        }
+        qCritical("Failed to load app component, quitting");
     }
     
-    QObject *appobj = this->appcomponent->create(context);   
+    QObject *appobj = this->m_appcomponent->create(m_context);
  
-    if (!appobj)
-    {
-	qCritical("Failed to create app object"); 
+    if (!appobj) {
+        qCritical("Failed to create app object");
     }
 }

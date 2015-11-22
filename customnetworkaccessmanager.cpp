@@ -21,22 +21,26 @@
 
 #include "customnetworkaccessmanager.h"
 
-QNetworkAccessManager *CustomNetworkAccessManagerFactory::customNetworkAccessManager = 0;
+QNetworkAccessManager *CustomNetworkAccessManagerFactory::s_customNetworkAccessManager = 0;
 
-CustomNetworkAccessManagerFactory::CustomNetworkAccessManagerFactory() {
-    customNetworkAccessManager = new CustomNetworkAccessManager();
+CustomNetworkAccessManagerFactory::CustomNetworkAccessManagerFactory()
+{
+    s_customNetworkAccessManager = new CustomNetworkAccessManager();
 }
 
-QNetworkAccessManager * CustomNetworkAccessManagerFactory::create(QObject *parent) {
+QNetworkAccessManager * CustomNetworkAccessManagerFactory::create(QObject *parent)
+{
     Q_UNUSED(parent)
-    return customNetworkAccessManager;
+    return s_customNetworkAccessManager;
 }
 
-CustomNetworkAccessManager::CustomNetworkAccessManager(QObject *parent):QNetworkAccessManager(parent) {
-
+CustomNetworkAccessManager::CustomNetworkAccessManager(QObject *parent)
+    : QNetworkAccessManager(parent)
+{
 }
 
-QNetworkReply *CustomNetworkAccessManager::createRequest(Operation op, const QNetworkRequest & req, QIODevice * outgoingData) {
+QNetworkReply *CustomNetworkAccessManager::createRequest(Operation op, const QNetworkRequest & req, QIODevice * outgoingData)
+{
     QUrl url = req.url();
     QNetworkRequest newRequest(req);
   
@@ -49,6 +53,7 @@ QNetworkReply *CustomNetworkAccessManager::createRequest(Operation op, const QNe
     return QNetworkAccessManager::createRequest(op, newRequest, outgoingData);
 }
 
-bool CustomNetworkAccessManager::isLocalHost(QString host) {
+bool CustomNetworkAccessManager::isLocalHost(QString host)
+{
     return host == "localhost" || host == "127.0.0.1";
 }

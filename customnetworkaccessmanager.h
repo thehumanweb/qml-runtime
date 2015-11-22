@@ -22,23 +22,23 @@
 #include <QQmlNetworkAccessManagerFactory>
 #include <QNetworkAccessManager>
 
-class CustomNetworkAccessManagerFactory : public QQmlNetworkAccessManagerFactory {
-    public:
-        virtual QNetworkAccessManager *create(QObject *);
-        CustomNetworkAccessManagerFactory();
-
-    private:
-        static QNetworkAccessManager *customNetworkAccessManager;
+class CustomNetworkAccessManagerFactory : public QQmlNetworkAccessManagerFactory
+{
+public:
+    CustomNetworkAccessManagerFactory();
+    QNetworkAccessManager *create(QObject *) override;
+private:
+    static QNetworkAccessManager *s_customNetworkAccessManager;
 };
 
-class CustomNetworkAccessManager : public QNetworkAccessManager {
-    public:
-        CustomNetworkAccessManager(QObject *parent=0);
-    protected:
-        QNetworkReply *createRequest(Operation op, const QNetworkRequest & req, QIODevice * outgoingData = 0);
-
-    private:
-        bool isLocalHost(QString);
+class CustomNetworkAccessManager : public QNetworkAccessManager
+{
+public:
+    CustomNetworkAccessManager(QObject *parent=0);
+protected:
+    QNetworkReply *createRequest(Operation op, const QNetworkRequest & req, QIODevice * outgoingData = 0);
+private:
+    bool isLocalHost(QString);
 };
 
 #endif
