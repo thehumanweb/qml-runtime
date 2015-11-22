@@ -2,6 +2,7 @@
 #include <QQmlComponent>
 #include <QQmlContext>
 
+#include "customnetworkaccessmanager.h"
 #include "ipfsonlyurlinterceptor.h"
 #include "qmlruntime.h"
 
@@ -10,12 +11,12 @@ int QMLRuntime::startup()
     QQmlEngine *engine = new QQmlEngine;
     IPFSOnlyUrlInterceptor *interceptor = new IPFSOnlyUrlInterceptor;    
     QQmlComponent *preloadcomponent = 0; 
- 
+
+    engine->setNetworkAccessManagerFactory(new CustomNetworkAccessManagerFactory); 
     engine->setUrlInterceptor(interceptor);
 
     preloadcomponent = new QQmlComponent(engine, QUrl::fromLocalFile("preload.qml"), QQmlComponent::PreferSynchronous);	
-
-
+    
     if (preloadcomponent->isError())
     {
 	foreach (const QQmlError &e, preloadcomponent->errors())
