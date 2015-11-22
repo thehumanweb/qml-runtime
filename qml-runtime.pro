@@ -3,9 +3,9 @@ TEMPLATE = app
 QT += qml quick
 CONFIG += c++11
 
-SOURCES += main.cpp
+SOURCES += main.cpp qmlruntime.cpp ipfsonlyurlinterceptor.cpp
 
-HEADERS += qmlruntime.h
+HEADERS += qmlruntime.h ipfsonlyurlinterceptor.h
 
 # Additional import path used to resolve QML modules in Qt Creator's code model
 QML_IMPORT_PATH =

@@ -2,10 +2,9 @@
 #define QMLRUNTIME_H
 
 #include <QGuiApplication>
-#include <QQmlEngine>
-#include <QQmlComponent>
-#include <QQmlAbstractUrlInterceptor>
-#include <QQmlContext>
+
+class QQmlComponent;
+class QQmlContext;
 
 class QMLRuntime : public QGuiApplication
 {
