@@ -24,11 +24,12 @@
 class IpfsOnlyUrlInterceptor : public QQmlAbstractUrlInterceptor
 {
 public:
+    explicit IpfsOnlyUrlInterceptor() = default;
     void lock();
     QUrl intercept(const QUrl &path, QQmlAbstractUrlInterceptor::DataType type) override;
 private:
-     bool m_sandboxLocked = false;
-     QList<QUrl> m_whitelisted;
+     bool m_sandboxLocked {false};
+     QList<QUrl> m_whitelisted {};
 };
 
 #endif
