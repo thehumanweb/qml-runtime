@@ -15,12 +15,7 @@
 * along with this library; if not, write to the Free Software Foundation, Inc.,
 * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 */
-
-#include <QGuiApplication>
-#include <QQmlEngine>
-#include <QQmlComponent>
-#include <QQmlAbstractUrlInterceptor>
-#include <QQmlContext>
+#include "qmlruntime.h"
 
 class IPFSOnlyUrlInterceptor : public QQmlAbstractUrlInterceptor
 {
@@ -61,15 +56,11 @@ public:
    }
 };
 
-
-int main(int argc, char *argv[])
+int QMLRuntime::startup()
 {
-    QGuiApplication app(argc, argv);
     QQmlEngine *engine = new QQmlEngine;
     QQmlComponent *preloadcomponent = new QQmlComponent(engine, QUrl::fromLocalFile("preload.qml"), QQmlComponent::PreferSynchronous);	
-    QQmlContext *context = 0;
     IPFSOnlyUrlInterceptor *interceptor = new IPFSOnlyUrlInterceptor;    
-    QQmlComponent *appcomponent = 0;
 
     if (preloadcomponent->isError())
     {
@@ -94,26 +85,36 @@ int main(int argc, char *argv[])
     // now sandboxed for URIs
     engine->setUrlInterceptor(interceptor);
  
-    appcomponent = new QQmlComponent(engine, QUrl(app.arguments().at(1)));
-    if (appcomponent->isError())
+    this->appcomponent = new QQmlComponent(engine, QUrl(this->arguments().at(1)));
+    if (this->appcomponent->isLoading())
     {
-	foreach (const QQmlError &e, appcomponent->errors())
-	{
-		qInfo("%s: %s", app.arguments().at(1).toLatin1().constData(), e.toString().toLatin1().constData());
-	}
-	qCritical("Failed to load %s, quitting", app.arguments().at(1).toLatin1().constData());
-    
-    } 
-    /* be a callback */
-    while (!appcomponent->isReady()) {}    
+	 QObject::connect(this->appcomponent, SIGNAL(statusChanged(QQmlComponent::Status)),
+                         this, SLOT(continueLoading()));
+    }
+    return this->exec();
+}
 
-    QObject *appobj = appcomponent->create(context);   
+void QMLRuntime::continueLoading()
+{
+    if (this->appcomponent->isError())
+    {
+	foreach (const QQmlError &e, this->appcomponent->errors())
+	{
+		qInfo("App component: %s", e.toString().toLatin1().constData());
+	}
+	qCritical("Failed to load app component, quitting"); 
+    }
+    
+    QObject *appobj = this->appcomponent->create(context);   
  
     if (!appobj)
     {
 	qCritical("Failed to create app object"); 
     }
-
-    return app.exec();
 }
 
+int main(int argc, char *argv[])
+{
+	QMLRuntime runtime(argc, argv);
+	return runtime.startup();
+}
