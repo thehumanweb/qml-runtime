@@ -24,7 +24,7 @@
 #include "ipfsonlyurlinterceptor.h"
 #include "qmlruntime.h"
 
-QmlRuntime::QmlRuntime(int argc, char *argv[])
+QmlRuntime::QmlRuntime(int &argc, char *argv[])
     : QGuiApplication(argc, argv)
 {
 }
