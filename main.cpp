@@ -19,10 +19,44 @@
 
 class IPFSOnlyUrlInterceptor : public QQmlAbstractUrlInterceptor
 {
+private:
+     bool sandbox_locked = false;
+     QList<QUrl> whitelisted;
 public:
+     void lock()
+     {	
+	 qInfo("Sandbox is now locked");
+	 foreach (const QUrl &url, this->whitelisted)
+		qInfo(" whitelisted %s", url.toString().toLatin1().constData());
+
+	 sandbox_locked = true;		
+     }
+
      QUrl intercept(const QUrl &path, QQmlAbstractUrlInterceptor::DataType type) Q_DECL_OVERRIDE
      {
-	 qInfo("Intercepted %s, %i", path.toString().toLatin1().constData(), type);
+	 qInfo("Intercepted %s, %i, sandbox is %s", path.toString().toLatin1().constData(), type, sandbox_locked ? "locked" : "unlocked");
+	 if (!sandbox_locked)
+	 {
+		whitelisted.append(path);
+		return path;
+	 }
+	 else 
+	 {
+		bool isWhiteListed = false;
+		foreach (const QUrl &url, this->whitelisted)
+		{
+			if (url == path)
+			{
+				isWhiteListed = true;	
+				break;
+			}
+		}
+		if (isWhiteListed)
+		{
+			qInfo("%s is whitelisted, letting through", path.toString().toLatin1().constData());
+			return path;		
+		}	
+	 }
 	 if (path.scheme().compare("file") == 0)
 	 {
 		if (path.path().startsWith("/ipfs/"))
@@ -45,22 +79,24 @@ public:
 			qInfo("Redirected to %s", redirected.toString().toLatin1().constData());
 			return redirected;
 		}
-		else return path;
 	 }
-	 else
-	 {
-		QUrl notpermitted("notpermitted://");
-		qInfo("Redirected to %s", notpermitted.toString().toLatin1().constData());
-		return notpermitted;
-	 }   
+	
+	 QUrl notpermitted("notpermitted://");
+	 qInfo("Redirected to %s", notpermitted.toString().toLatin1().constData());
+	 return notpermitted;
    }
 };
 
 int QMLRuntime::startup()
 {
     QQmlEngine *engine = new QQmlEngine;
-    QQmlComponent *preloadcomponent = new QQmlComponent(engine, QUrl::fromLocalFile("preload.qml"), QQmlComponent::PreferSynchronous);	
     IPFSOnlyUrlInterceptor *interceptor = new IPFSOnlyUrlInterceptor;    
+    QQmlComponent *preloadcomponent = 0; 
+ 
+    engine->setUrlInterceptor(interceptor);
+
+    preloadcomponent = new QQmlComponent(engine, QUrl::fromLocalFile("preload.qml"), QQmlComponent::PreferSynchronous);	
+
 
     if (preloadcomponent->isError())
     {
@@ -83,8 +119,8 @@ int QMLRuntime::startup()
 
     // now we should switch to another user ? or in start?
     // now sandboxed for URIs
-    engine->setUrlInterceptor(interceptor);
- 
+    interceptor->lock();
+
     this->appcomponent = new QQmlComponent(engine, QUrl(this->arguments().at(1)));
     if (this->appcomponent->isLoading())
     {
