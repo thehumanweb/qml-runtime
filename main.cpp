@@ -20,6 +20,6 @@
 
 int main(int argc, char *argv[])
 {
-	QMLRuntime runtime(argc, argv);
+    QmlRuntime runtime(argc, argv);
 	return runtime.startup();
 }

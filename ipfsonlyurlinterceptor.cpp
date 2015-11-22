@@ -18,7 +18,7 @@
 
 #include "ipfsonlyurlinterceptor.h"
 
-void IPFSOnlyUrlInterceptor::lock()
+void IpfsOnlyUrlInterceptor::lock()
 {	
     qInfo("Sandbox is now locked");
     foreach (const QUrl &url, this->whitelisted)
@@ -27,7 +27,7 @@ void IPFSOnlyUrlInterceptor::lock()
     sandbox_locked = true;		
 }
 
-QUrl IPFSOnlyUrlInterceptor::intercept(const QUrl &path, QQmlAbstractUrlInterceptor::DataType type)
+QUrl IpfsOnlyUrlInterceptor::intercept(const QUrl &path, QQmlAbstractUrlInterceptor::DataType type)
 {
     qInfo("Intercepted %s, %i, sandbox is %s", path.toString().toLatin1().constData(), type, sandbox_locked ? "locked" : "unlocked");
     if (!sandbox_locked)

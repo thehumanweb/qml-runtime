@@ -24,12 +24,12 @@
 class QQmlComponent;
 class QQmlContext;
 
-class QMLRuntime : public QGuiApplication
+class QmlRuntime : public QGuiApplication
 {
 	Q_OBJECT
 
 	public:
-	QMLRuntime(int argc, char *argv[]) : QGuiApplication(argc, argv)
+	QmlRuntime(int argc, char *argv[]) : QGuiApplication(argc, argv)
 	{}
 	
 	int startup();

@@ -24,10 +24,10 @@
 #include "ipfsonlyurlinterceptor.h"
 #include "qmlruntime.h"
 
-int QMLRuntime::startup()
+int QmlRuntime::startup()
 {
     QQmlEngine *engine = new QQmlEngine;
-    IPFSOnlyUrlInterceptor *interceptor = new IPFSOnlyUrlInterceptor;    
+    IpfsOnlyUrlInterceptor *interceptor = new IpfsOnlyUrlInterceptor;    
     QQmlComponent *preloadcomponent = 0; 
 
     engine->setNetworkAccessManagerFactory(new CustomNetworkAccessManagerFactory); 
@@ -67,7 +67,7 @@ int QMLRuntime::startup()
     return this->exec();
 }
 
-void QMLRuntime::continueLoading()
+void QmlRuntime::continueLoading()
 {
     if (this->appcomponent->isError())
     {
