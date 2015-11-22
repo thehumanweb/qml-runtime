@@ -21,5 +21,5 @@
 int main(int argc, char *argv[])
 {
     QmlRuntime runtime(argc, argv);
-	return runtime.startup();
+    return runtime.startup();
 }
