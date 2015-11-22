@@ -18,20 +18,16 @@
 
 #include <QUrl>
 #include <QNetworkRequest>
-
 #include "customnetworkaccessmanager.h"
 
-QNetworkAccessManager *CustomNetworkAccessManagerFactory::s_customNetworkAccessManager = 0;
-
 CustomNetworkAccessManagerFactory::CustomNetworkAccessManagerFactory()
+    : QQmlNetworkAccessManagerFactory()
 {
-    s_customNetworkAccessManager = new CustomNetworkAccessManager();
 }
 
 QNetworkAccessManager * CustomNetworkAccessManagerFactory::create(QObject *parent)
 {
-    Q_UNUSED(parent)
-    return s_customNetworkAccessManager;
+    return new CustomNetworkAccessManager(parent);
 }
 
 CustomNetworkAccessManager::CustomNetworkAccessManager(QObject *parent)
@@ -39,18 +35,20 @@ CustomNetworkAccessManager::CustomNetworkAccessManager(QObject *parent)
 {
 }
 
-QNetworkReply *CustomNetworkAccessManager::createRequest(Operation op, const QNetworkRequest & req, QIODevice * outgoingData)
+QNetworkReply *CustomNetworkAccessManager::createRequest(Operation operation,
+                                                         const QNetworkRequest &request,
+                                                         QIODevice *outgoingData)
 {
-    QUrl url = req.url();
-    QNetworkRequest newRequest(req);
+    QUrl url = request.url();
+    QNetworkRequest newRequest(request);
   
     if (url.scheme() != "http" || !isLocalHost(url.host()) || url.port() != 8080) {
-        qWarning() << "Application is trying to access non-IPFS service. Host is " << url.scheme() << "://" <<url.host() << ":" << url.port();
+        qWarning() << "Application is trying to access non-IPFS service. Host is "
+                   << url.scheme() << "://" <<url.host() << ":" << url.port();
         // Access denied. Redirect to an IPFS object representing ipfs error
         newRequest.setUrl(QUrl(QString("")));
     }
-
-    return QNetworkAccessManager::createRequest(op, newRequest, outgoingData);
+    return QNetworkAccessManager::createRequest(operation, newRequest, outgoingData);
 }
 
 bool CustomNetworkAccessManager::isLocalHost(QString host)

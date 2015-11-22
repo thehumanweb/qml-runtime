@@ -28,7 +28,7 @@ class QmlRuntime : public QGuiApplication
 {
     Q_OBJECT
 public:
-    QmlRuntime(int argc, char *argv[]);
+    QmlRuntime(int &argc, char *argv[]);
     int startup();
 private:
     QQmlComponent *m_appcomponent;
