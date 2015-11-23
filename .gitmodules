@@ -1,3 +1,6 @@
 [submodule "protobuf-qml"]
 	path = protobuf-qml
 	url = https://github.com/nsuke/protobuf-qml.git
+[submodule "torsocks"]
+	path = torsocks
+	url = https://git.torproject.org/torsocks.git
