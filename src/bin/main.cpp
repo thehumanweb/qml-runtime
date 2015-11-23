@@ -20,6 +20,8 @@
 
 int main(int argc, char *argv[])
 {
+    Q_INIT_RESOURCE(preload);
+
     QmlRuntime runtime(argc, argv);
     return runtime.startup();
 }
