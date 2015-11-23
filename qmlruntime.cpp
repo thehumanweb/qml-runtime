@@ -41,6 +41,7 @@ int QmlRuntime::startup()
 
     m_engine->setNetworkAccessManagerFactory(m_networkAccessManagerFactory.get());
     m_engine->setUrlInterceptor(m_urlInterceptor.get());
+    m_engine->addImportPath("protobuf-qml/out/Release/bin/");
     QObject::connect(m_engine.get(), &QQmlEngine::quit, QCoreApplication::quit);
 
     preload();
