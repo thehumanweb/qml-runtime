@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/">
+        <file>preload.qml</file>
+    </qresource>
+</RCC>

@@ -83,7 +83,7 @@ int QmlRuntime::startup()
 void QmlRuntime::preload()
 {
     QObjectPtr<QQmlComponent> component (new QQmlComponent(m_engine.get(),
-                                                           QUrl::fromLocalFile("preload.qml"),
+                                                           QUrl("qrc:/preload.qml"),
                                                            QQmlComponent::PreferSynchronous));
 
     if (component->isError()) {

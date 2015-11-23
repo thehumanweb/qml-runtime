@@ -1,15 +1,23 @@
 TEMPLATE = app
+TARGET = qml-runtime
 
 QT += qml quick
 CONFIG += c++11
 
-SOURCES += main.cpp qmlruntime.cpp ipfsonlyurlinterceptor.cpp customnetworkaccessmanager.cpp
+HEADERS += \
+    qmlruntime.h \
+    ipfsonlyurlinterceptor.h \
+    customnetworkaccessmanager.h \
+    qobjectptr.h
 
-HEADERS += qmlruntime.h ipfsonlyurlinterceptor.h customnetworkaccessmanager.h qobjectptr.h
+SOURCES += \
+    main.cpp \
+    qmlruntime.cpp \
+    ipfsonlyurlinterceptor.cpp \
+    customnetworkaccessmanager.cpp
 
-# Additional import path used to resolve QML modules in Qt Creator's code model
-QML_IMPORT_PATH =
+RESOURCES += \
+    preload.qrc
 
-# Default rules for deployment.
-include(deployment.pri)
-
+OTHER_FILES += \
+    preload.qml
