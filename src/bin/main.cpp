@@ -1,5 +1,5 @@
 /* 
-* Copyright (C) 2015 Siteshwar Vashisht <siteshwar@gmail.com>
+* Copyright (C) 2015 Carsten V. Munk
 * 
 * This library is free software; you can redistribute it and/or modify it
 * under the terms of the GNU Lesser General Public License as published by
@@ -16,21 +16,21 @@
 * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 */
 
-#ifndef IPFSONLYURLINTERCEPTOR_H
-#define IPFSONLYURLINTERCEPTOR_H
+#include <QGuiApplication>
+#include "qmlruntimefactory.h"
 
-#include <QQmlAbstractUrlInterceptor>
-#include <set>
-
-class IpfsOnlyUrlInterceptor : public QQmlAbstractUrlInterceptor
+int main(int argc, char *argv[])
 {
-public:
-    explicit IpfsOnlyUrlInterceptor() = default;
-    void lock();
-    QUrl intercept(const QUrl &path, QQmlAbstractUrlInterceptor::DataType type) override;
-private:
-     bool m_locked {false};
-     std::set<QUrl> m_whitelisted {};
-};
+    Q_INIT_RESOURCE(preload);
+    QGuiApplication app (argc, argv);
 
-#endif
+    if (app.arguments().count() != 2) {
+        return 10;
+    }
+    QString source = app.arguments().at(1);
+
+    QmlRuntime::Ptr runtime (QmlRuntimeFactory::create());
+    Q_ASSERT(runtime->preload(QUrl("qrc:/preload.qml")));
+    runtime->execute(QUrl(source));
+    return app.exec();
+}

@@ -1,6 +1,6 @@
-/* 
-* Copyright (C) 2015 Siteshwar Vashisht <siteshwar@gmail.com>
-* 
+/*
+* Copyright (C) 2015 Lucien Xu <sfietkonstantin@free.fr>
+*
 * This library is free software; you can redistribute it and/or modify it
 * under the terms of the GNU Lesser General Public License as published by
 * the Free Software Foundation; either version 2.1 of the License, or
@@ -16,26 +16,12 @@
 * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 */
 
-#ifndef QMLRUNTIME_H
-#define QMLRUNTIME_H
-
-#include <QGuiApplication>
-#include <QQmlEngine>
-#include <QQmlNetworkAccessManagerFactory>
-#include "qobjectptr.h"
+#include "qmlruntimefactory.h"
 #include "ipfsonlyurlinterceptor.h"
+#include "customnetworkaccessmanager.h"
 
-class QmlRuntime : public QGuiApplication
+QmlRuntime::Ptr QmlRuntimeFactory::create()
 {
-    Q_OBJECT
-public:
-    QmlRuntime(int &argc, char *argv[]);
-    int startup();
-private:
-    void preload();
-    std::unique_ptr<IpfsOnlyUrlInterceptor> m_urlInterceptor {};
-    std::unique_ptr<QQmlNetworkAccessManagerFactory> m_networkAccessManagerFactory {};
-    QObjectPtr<QQmlEngine> m_engine {};
-};
-
-#endif
+    return QmlRuntime::Ptr(new QmlRuntime(std::unique_ptr<ILockableUrlInterceptor>(new IpfsOnlyUrlInterceptor()),
+                                          std::unique_ptr<QQmlNetworkAccessManagerFactory>(new CustomNetworkAccessManagerFactory())));
+}

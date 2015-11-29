@@ -1,6 +1,6 @@
-/* 
-* Copyright (C) 2015 Carsten V. Munk
-* 
+/*
+* Copyright (C) 2015 Lucien Xu <sfietkonstantin@free.fr>
+*
 * This library is free software; you can redistribute it and/or modify it
 * under the terms of the GNU Lesser General Public License as published by
 * the Free Software Foundation; either version 2.1 of the License, or
@@ -16,10 +16,16 @@
 * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 */
 
-#include "qmlruntime.h"
+#ifndef ILOCKABLEURLINTERCEPTOR_H
+#define ILOCKABLEURLINTERCEPTOR_H
 
-int main(int argc, char *argv[])
+#include <QQmlAbstractUrlInterceptor>
+
+class ILockableUrlInterceptor: public QQmlAbstractUrlInterceptor
 {
-    QmlRuntime runtime(argc, argv);
-    return runtime.startup();
-}
+public:
+    virtual void lock() = 0;
+};
+
+#endif // ILOCKABLEURLINTERCEPTOR_H
+

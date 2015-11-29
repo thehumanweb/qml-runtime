@@ -1,6 +1,6 @@
-/* 
-* Copyright (C) 2015 Siteshwar Vashisht <siteshwar@gmail.com>
-* 
+/*
+* Copyright (C) 2015 Lucien Xu <sfietkonstantin@free.fr>
+*
 * This library is free software; you can redistribute it and/or modify it
 * under the terms of the GNU Lesser General Public License as published by
 * the Free Software Foundation; either version 2.1 of the License, or
@@ -16,28 +16,32 @@
 * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 */
 
-#ifndef CUSTOMNETWORKACCESSMANAGER_H
-#define CUSTOMNETWORKACCESSMANAGER_H
+#ifndef MOCKNETWORKACCESSMANAGER_H
+#define MOCKNETWORKACCESSMANAGER_H
 
+#include <gmock/gmock.h>
 #include <QQmlNetworkAccessManagerFactory>
 #include <QNetworkAccessManager>
+#include <QNetworkRequest>
 
-class CustomNetworkAccessManagerFactory : public QQmlNetworkAccessManagerFactory
+class MockNetworkAccessManager: public QNetworkAccessManager
 {
 public:
-    explicit CustomNetworkAccessManagerFactory() = default;
-    QNetworkAccessManager * create(QObject *parent) override;
-};
-
-class CustomNetworkAccessManager : public QNetworkAccessManager
-{
-public:
-    explicit CustomNetworkAccessManager(QObject *parent = nullptr);
-protected:
-    QNetworkReply * createRequest(Operation operation, const QNetworkRequest &request,
-                                  QIODevice *outgoingData);
+    MOCK_METHOD1(mockCreateRequest, void (const QUrl &url));
 private:
-    bool isLocalHost(const QString &host);
+    QNetworkReply * createRequest(Operation operation, const QNetworkRequest &request,
+                                  QIODevice *outgoingData) override
+    {
+        mockCreateRequest(request.url());
+        return QNetworkAccessManager::createRequest(operation, request, outgoingData);
+    }
 };
 
-#endif
+class MockNetworkAccessManagerFactory: public QQmlNetworkAccessManagerFactory
+{
+public:
+    MOCK_METHOD1(create, QNetworkAccessManager * (QObject *parent));
+};
+
+#endif // MOCKNETWORKACCESSMANAGER_H
+

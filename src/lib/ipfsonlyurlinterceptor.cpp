@@ -44,21 +44,14 @@ QUrl IpfsOnlyUrlInterceptor::intercept(const QUrl &path, QQmlAbstractUrlIntercep
         }
     }
 
-    if (path.scheme().compare("file") == 0) {
-        if (path.path().startsWith("/ipfs/")) {
-            QUrl redirected(path);
+    if (path.scheme() == "file") {
+        if (path.path().startsWith("/ipfs/") || path.path().startsWith("/ipns/")) {
+            QUrl redirected;
             /* XXXX get this from env or command line */
             redirected.setScheme("http");
             redirected.setPort(8080);
             redirected.setHost("localhost");
-            qCInfo(logger) << "Redirected to" << redirected.toString();
-            return redirected;
-        } else if (path.path().startsWith("/ipns/")) {
-            QUrl redirected(path);
-            /* XXXX get this from env or command line */
-            redirected.setScheme("http");
-            redirected.setPort(8080);
-            redirected.setHost("localhost");
+            redirected.setPath(path.path());
             qCInfo(logger) << "Redirected to" << redirected.toString();
             return redirected;
         }
