@@ -19,10 +19,10 @@
 #ifndef IPFSONLYURLINTERCEPTOR_H
 #define IPFSONLYURLINTERCEPTOR_H
 
-#include <QQmlAbstractUrlInterceptor>
+#include "ilockableurlinterceptor.h"
 #include <set>
 
-class IpfsOnlyUrlInterceptor : public QQmlAbstractUrlInterceptor
+class IpfsOnlyUrlInterceptor : public ILockableUrlInterceptor
 {
 public:
     explicit IpfsOnlyUrlInterceptor() = default;

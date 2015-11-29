@@ -1,6 +1,8 @@
 TEMPLATE = app
 TARGET = qml-runtime
 
+include(../common.pri)
+
 QT += qml quick
 CONFIG += c++11
 

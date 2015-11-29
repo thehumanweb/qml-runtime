@@ -1,6 +1,6 @@
-/* 
-* Copyright (C) 2015 Carsten V. Munk
-* 
+/*
+* Copyright (C) 2015 Lucien Xu <sfietkonstantin@free.fr>
+*
 * This library is free software; you can redistribute it and/or modify it
 * under the terms of the GNU Lesser General Public License as published by
 * the Free Software Foundation; either version 2.1 of the License, or
@@ -16,21 +16,12 @@
 * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 */
 
-#include <QGuiApplication>
 #include "qmlruntimefactory.h"
+#include "ipfsonlyurlinterceptor.h"
+#include "customnetworkaccessmanager.h"
 
-int main(int argc, char *argv[])
+QmlRuntime::Ptr QmlRuntimeFactory::create()
 {
-    Q_INIT_RESOURCE(preload);
-    QGuiApplication app (argc, argv);
-
-    if (app.arguments().count() != 2) {
-        return 10;
-    }
-    QString source = app.arguments().at(1);
-
-    QmlRuntime::Ptr runtime (QmlRuntimeFactory::create());
-    Q_ASSERT(runtime->preload(QUrl("qrc:/preload.qml")));
-    runtime->execute(QUrl(source));
-    return app.exec();
+    return QmlRuntime::Ptr(new QmlRuntime(std::unique_ptr<ILockableUrlInterceptor>(new IpfsOnlyUrlInterceptor()),
+                                          std::unique_ptr<QQmlNetworkAccessManagerFactory>(new CustomNetworkAccessManagerFactory())));
 }

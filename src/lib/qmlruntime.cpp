@@ -20,54 +20,34 @@
 #include <QQmlComponent>
 #include <QQmlContext>
 #include <QLoggingCategory>
+#include <QtCore/QCoreApplication>
 
 #include "customnetworkaccessmanager.h"
 #include "ipfsonlyurlinterceptor.h"
 #include "qmlruntime.h"
 
-static const QLoggingCategory logger {"qmlruntime"};
+static const QLoggingCategory logger {"qml-runtime"};
 
-
-QmlRuntime::QmlRuntime(int &argc, char *argv[])
-    : QGuiApplication(argc, argv)
+QmlRuntime::QmlRuntime(std::unique_ptr<ILockableUrlInterceptor> &&urlInterceptor,
+                       std::unique_ptr<QQmlNetworkAccessManagerFactory> &&networkAccessManagerFactory)
+    : m_urlInterceptor(std::move(urlInterceptor))
+    , m_networkAccessManagerFactory(std::move(networkAccessManagerFactory))
+    , m_engine(new QQmlEngine())
 {
-}
-
-int QmlRuntime::startup()
-{
-    m_engine.reset(new QQmlEngine());
-    m_urlInterceptor.reset(new IpfsOnlyUrlInterceptor()) ;
-    m_networkAccessManagerFactory.reset(new CustomNetworkAccessManagerFactory());
-
     m_engine->setNetworkAccessManagerFactory(m_networkAccessManagerFactory.get());
     m_engine->setUrlInterceptor(m_urlInterceptor.get());
     m_engine->addImportPath("protobuf-qml/out/Release/bin/");
     QObject::connect(m_engine.get(), &QQmlEngine::quit, QCoreApplication::quit);
+}
 
-    preload();
+QObject * QmlRuntime::object() const
+{
+    return m_object.get();
+}
 
-    QQmlComponent *component = new QQmlComponent(m_engine.get(), QUrl(this->arguments().at(1)));
-    if (component->isLoading()) {
-        QObject::connect(component, &QQmlComponent::statusChanged, [this, component](QQmlComponent::Status status) {
-            switch (status) {
-            case QQmlComponent::Ready:
-            {
-                QObject *appObject = component->create(m_engine->rootContext());
-                if (appObject == nullptr) {
-                    qCCritical(logger) << "Failed to create application object";
-                }
-                break;
-            }
-            default:
-                foreach (const QQmlError &error, component->errors()) {
-                    qCInfo(logger) << "Application component:" << error.toString();
-                }
-                qCCritical(logger) << "Failed to load application component";
-                break;
-            }
-        });
-    }
-    return this->exec();
+QmlRuntime::Status QmlRuntime::status() const
+{
+    return m_status;
 }
 
 /**
@@ -79,28 +59,84 @@ int QmlRuntime::startup()
  *
  * When the preloaded components are loaded, this method
  * will lock the URL interceptor.
+ *
+ * @return if the preload succeded.
  */
-void QmlRuntime::preload()
+bool QmlRuntime::preload(const QUrl &url)
 {
-    QObjectPtr<QQmlComponent> component (new QQmlComponent(m_engine.get(),
-                                                           QUrl("qrc:/preload.qml"),
-                                                           QQmlComponent::PreferSynchronous));
+    QObjectPtr<QQmlComponent> component (new QQmlComponent(m_engine.get(), url, QQmlComponent::PreferSynchronous));
 
-    if (component->isError()) {
-        foreach (const QQmlError &error, component->errors()) {
-            qCInfo(logger) << "preload.qml:" << error.toString();
+    if (!component->isReady()) {
+        qCWarning(logger) << "Failed to create preload component";
+
+        if (component->isLoading()) {
+            qCWarning(logger) << "Preloading remote resources are not supported";
+        } else {
+            foreach (const QQmlError &error, component->errors()) {
+                qCInfo(logger) << error.toString();
+            }
         }
-        qCCritical(logger) << "Failed to load preload.qml";
+        return false;
     }
 
     QQmlContext *context = m_engine->rootContext();
     QObjectPtr<QObject> object (component->create(context));
 
     if (!object) {
-        qCCritical(logger) << "Failed to create preload object";
+        qCWarning(logger) << "Failed to create preload object";
+        return false;
     }
 
     // now we should switch to another user ? or in start?
     // now sandboxed for URIs
     m_urlInterceptor->lock();
+    return true;
+}
+
+void QmlRuntime::execute(const QUrl &url)
+{
+    m_component = new QQmlComponent(m_engine.get(), url);
+    if (m_component->isLoading()) {
+        setStatus(Status::Loading);
+        connect(m_component, &QQmlComponent::statusChanged, [this](QQmlComponent::Status status) {
+            Q_UNUSED(status)
+            create();
+        });
+    } else {
+        create();
+    }
+}
+
+void QmlRuntime::create()
+{
+    Q_ASSERT(!m_component->isLoading());
+    if (!m_component->isReady()) {
+        setStatus(Status::Error);
+        qCWarning(logger) << "Failed create application component";
+        foreach (const QQmlError &error, m_component->errors()) {
+            qCInfo(logger) << error.toString();
+        }
+        return;
+    }
+
+    QObjectPtr<QObject> object (m_component->create(m_engine->rootContext()));
+    if (!object) {
+        setStatus(Status::Error);
+        qWarning(logger) << "Failed to create application object";
+        return;
+    }
+
+    setStatus(Status::Ready);
+    if (m_object.get() != object.get()) {
+        m_object = std::move(object);
+        emit objectChanged();
+    }
+}
+
+void QmlRuntime::setStatus(QmlRuntime::Status status)
+{
+    if (m_status != status) {
+        m_status = status;
+        emit statusChanged();
+    }
 }

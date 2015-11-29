@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/tests">
+        <file>preload.qml</file>
+        <file>preload-fail.qml</file>
+    </qresource>
+</RCC>

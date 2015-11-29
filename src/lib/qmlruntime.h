@@ -19,23 +19,43 @@
 #ifndef QMLRUNTIME_H
 #define QMLRUNTIME_H
 
-#include <QGuiApplication>
+#include <QObject>
 #include <QQmlEngine>
 #include <QQmlNetworkAccessManagerFactory>
 #include "qobjectptr.h"
-#include "ipfsonlyurlinterceptor.h"
+#include "ilockableurlinterceptor.h"
 
-class QmlRuntime : public QGuiApplication
+class QmlRuntime: public QObject
 {
     Q_OBJECT
+
+    Q_PROPERTY(QObject * object READ object NOTIFY objectChanged)
 public:
-    QmlRuntime(int &argc, char *argv[]);
-    int startup();
+    enum class Status {
+        Null,
+        Ready,
+        Loading,
+        Error
+    };
+    using Ptr = std::unique_ptr<QmlRuntime>;
+    QmlRuntime(std::unique_ptr<ILockableUrlInterceptor> &&urlInterceptor,
+               std::unique_ptr<QQmlNetworkAccessManagerFactory> &&networkAccessManagerFactory);
+    QObject * object() const;
+    Status status() const;
+    bool preload(const QUrl &url);
+    void execute(const QUrl &url);
+signals:
+    void objectChanged();
+    void statusChanged();
 private:
-    void preload();
-    std::unique_ptr<IpfsOnlyUrlInterceptor> m_urlInterceptor {};
+    void create();
+    void setStatus(Status status);
+    std::unique_ptr<ILockableUrlInterceptor> m_urlInterceptor {};
     std::unique_ptr<QQmlNetworkAccessManagerFactory> m_networkAccessManagerFactory {};
     QObjectPtr<QQmlEngine> m_engine {};
+    QQmlComponent *m_component {nullptr};
+    Status m_status {Status::Null};
+    QObjectPtr<QObject> m_object {};
 };
 
 #endif
