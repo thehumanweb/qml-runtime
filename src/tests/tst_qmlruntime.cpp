@@ -134,9 +134,11 @@ TEST(QmlRuntime, ExecuteLocalFail)
 
 TEST(QmlRuntime, ExecuteRemote)
 {
-    QUrl remoteUrl ("https://raw.githubusercontent.com/thehumanweb/qml-runtime/master/TODO"); // TODO: fixme after test CL being merged
+    QUrl remoteUrl ("https://raw.githubusercontent.com/thehumanweb/qml-runtime/master/src/tests/preload.qml");
+    QUrl remoteQmlDir ("https://raw.githubusercontent.com/thehumanweb/qml-runtime/master/src/tests/qmldir");
     QObjectPtr<MockNetworkAccessManager> nam (new MockNetworkAccessManager());
     EXPECT_CALL(*nam, mockCreateRequest(remoteUrl)).Times(1);
+    EXPECT_CALL(*nam, mockCreateRequest(remoteQmlDir)).Times(1);
 
     std::unique_ptr<MockNetworkAccessManagerFactory> namFactory (new MockNetworkAccessManagerFactory());
     EXPECT_CALL(*namFactory, create(_)).Times(1).WillRepeatedly(Return(nam.get()));
@@ -167,7 +169,7 @@ TEST(QmlRuntime, ExecuteRemote)
 
 TEST(QmlRuntime, ExecuteRemoteFail)
 {
-    QUrl remoteUrl ("https://raw.githubusercontent.com/thehumanweb/qml-runtime/master/TODO"); // TODO: fixme after test CL being merged
+    QUrl remoteUrl ("https://raw.githubusercontent.com/thehumanweb/qml-runtime/master/src/tests/preload-fail.qml");
     QObjectPtr<MockNetworkAccessManager> nam (new MockNetworkAccessManager());
     EXPECT_CALL(*nam, mockCreateRequest(remoteUrl)).Times(1);
 
