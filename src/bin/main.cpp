@@ -30,7 +30,9 @@ int main(int argc, char *argv[])
     QString source = app.arguments().at(1);
 
     QmlRuntime::Ptr runtime (QmlRuntimeFactory::create());
-    Q_ASSERT(runtime->preload(QUrl("qrc:/preload.qml")));
+    bool preloaded = runtime->preload(QUrl("qrc:/preload.qml"));
+    Q_ASSERT(preloaded);
+    Q_UNUSED(preloaded);
     runtime->execute(QUrl(source));
     return app.exec();
 }
