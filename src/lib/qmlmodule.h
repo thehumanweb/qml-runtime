@@ -1,6 +1,6 @@
-/* 
-* Copyright (C) 2015 Carsten V. Munk
-* 
+/*
+* Copyright (C) 2015 Siteshwar Vashisht <siteshwar@gmail.com>
+*
 * This library is free software; you can redistribute it and/or modify it
 * under the terms of the GNU Lesser General Public License as published by
 * the Free Software Foundation; either version 2.1 of the License, or
@@ -16,27 +16,16 @@
 * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 */
 
-#include <QGuiApplication>
-#include <QtQml/qqml.h>
-#include "qmlruntimefactory.h"
-#include "qmlmodule.h"
+#ifndef QMLMODULE_H
+#define QMLMODULE_H
 
-int main(int argc, char *argv[])
+class QmlModule
 {
-    Q_INIT_RESOURCE(preload);
-    QGuiApplication app (argc, argv);
+public:
+    static void registerTypes();
+private:
+    static void registerProtobufTypes();
+    static void registerGrpcTypes();
+};
 
-    if (app.arguments().count() != 2) {
-        return 10;
-    }
-
-    QmlModule::registerTypes();
-    QString source = app.arguments().at(1);
-
-    QmlRuntime::Ptr runtime (QmlRuntimeFactory::create());
-    bool preloaded = runtime->preload(QUrl(QLatin1String("qrc:/preload.qml")));
-    Q_ASSERT(preloaded);
-    Q_UNUSED(preloaded);
-    runtime->execute(QUrl(source));
-    return app.exec();
-}
+#endif // QMLMODULE_H
