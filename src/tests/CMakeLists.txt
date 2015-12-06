@@ -21,12 +21,23 @@ include_directories(
 )
 
 set(${PROJECT_NAME}_SRCS
-    main.cpp
+    tst_main.cpp
+    formatters.cpp
     mocknetworkaccessmanager.h
     mockurlinterceptor.h
     tst_networkaccessmanager.cpp
     tst_urlinterceptor.cpp
     tst_qmlruntime.cpp
+    safeloadertesthelper.cpp
+    tst_safeloader.cpp
+)
+
+set(${PROJECT_NAME}_Qml_SRCS
+    preload.qml
+    preload-fail.qml
+    SafeLoaderTestParent.qml
+    SafeLoaderTestChild.qml
+    SafeLoaderTestChildFail.qml
 )
 
 qt5_add_resources(${PROJECT_NAME}_Res_SRCS
@@ -35,6 +46,7 @@ qt5_add_resources(${PROJECT_NAME}_Res_SRCS
 
 add_executable(${PROJECT_NAME}
     ${${PROJECT_NAME}_SRCS}
+    ${${PROJECT_NAME}_Qml_SRCS}
     ${${PROJECT_NAME}_Res_SRCS}
 )
 qt5_use_modules(${PROJECT_NAME} Core Qml Quick Test)

@@ -18,12 +18,7 @@
 
 #include <gtest/gtest.h>
 #include <ipfsonlyurlinterceptor.h>
-
-std::ostream & operator<<(std::ostream & stream, const QUrl &url)
-{
-    stream << url.toEncoded().data();
-    return stream;
-}
+#include "formatters.h"
 
 TEST(UrlInterceptor, Unlocked)
 {
