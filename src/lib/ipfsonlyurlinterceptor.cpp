@@ -44,20 +44,20 @@ QUrl IpfsOnlyUrlInterceptor::intercept(const QUrl &path, QQmlAbstractUrlIntercep
         }
     }
 
-    if (path.scheme() == "file") {
-        if (path.path().startsWith("/ipfs/") || path.path().startsWith("/ipns/")) {
+    if (path.scheme() == QLatin1String("file")) {
+        if (path.path().startsWith(QLatin1String("/ipfs/")) || path.path().startsWith(QLatin1String("/ipns/"))) {
             QUrl redirected;
             /* XXXX get this from env or command line */
-            redirected.setScheme("http");
+            redirected.setScheme(QLatin1String("http"));
             redirected.setPort(8080);
-            redirected.setHost("localhost");
+            redirected.setHost(QLatin1String("localhost"));
             redirected.setPath(path.path());
             qCInfo(logger) << "Redirected to" << redirected.toString();
             return redirected;
         }
     }
 
-    QUrl notpermitted("notpermitted://");
+    QUrl notpermitted(QLatin1String("notpermitted://"));
     qCInfo(logger) << "Redirected to" << notpermitted.toString();
     return notpermitted;
 }

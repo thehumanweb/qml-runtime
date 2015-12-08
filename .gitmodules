@@ -1,9 +1,15 @@
 [submodule "protobuf-qml"]
-	path = protobuf-qml
+	path = src/3rdparty/protobuf-qml
 	url = https://github.com/nsuke/protobuf-qml.git
 [submodule "torsocks"]
 	path = torsocks
 	url = https://git.torproject.org/torsocks.git
 [submodule "googletest"]
-	path = googletest
+	path = src/3rdparty/googletest
 	url = https://github.com/google/googletest.git
+[submodule "src/3rdparty/grpc"]
+	path = src/3rdparty/grpc
+	url = https://github.com/grpc/grpc.git
+[submodule "src/3rdparty/protobuf"]
+	path = src/3rdparty/protobuf
+	url = https://github.com/google/protobuf.git

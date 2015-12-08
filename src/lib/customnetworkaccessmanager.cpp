@@ -40,7 +40,7 @@ QNetworkReply * CustomNetworkAccessManager::createRequest(Operation operation,
     QUrl url = request.url();
     QNetworkRequest newRequest(request);
   
-    if (url.scheme() != "http" || !isLocalHost(url.host()) || url.port() != 8080) {
+    if (url.scheme() != QLatin1String("http") || !isLocalHost(url.host()) || url.port() != 8080) {
         // Access denied. Redirect to an IPFS object representing ipfs error
         qCWarning(logger) << "Application is trying to access non-IPFS service. Host is "
                           << url.scheme() << "://" <<url.host() << ":" << url.port();
@@ -51,5 +51,5 @@ QNetworkReply * CustomNetworkAccessManager::createRequest(Operation operation,
 
 bool CustomNetworkAccessManager::isLocalHost(const QString &host)
 {
-    return host == "localhost" || host == "127.0.0.1";
+    return host == QLatin1String("localhost") || host == QLatin1String("127.0.0.1");
 }

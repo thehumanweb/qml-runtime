@@ -1,0 +1,78 @@
+# This file has been generated with tools/build/gen_grpc_cmake.py
+cmake_minimum_required(VERSION 2.8.12)
+project(grpc)
+
+# Use system SSL
+add_definitions(-DTSI_OPENSSL_ALPN_SUPPORT=0)
+
+set(GRPC_DIR ${'$'}{CMAKE_SOURCE_DIR}/src/3rdparty/grpc)
+set(GRPC_INCLUDE_DIR ${'$'}{GRPC_DIR}/include)
+
+set(PROTOBUF_DIR ${'$'}{CMAKE_SOURCE_DIR}/src/3rdparty/protobuf)
+set(PROTOBUF_INCLUDE_DIR ${'$'}{PROTOBUF_DIR}/src)
+
+find_path(OPENSSL_INCLUDE_DIR NAMES openssl/ssl.h)
+mark_as_advanced(OPENSSL_INCLUDE_DIR)
+
+find_library(OPENSSL_SSL_LIBRARY NAMES ssl)
+mark_as_advanced(OPENSSL_SSL_LIBRARY)
+
+find_library(OPENSSL_CRYPTO_LIBRARY NAMES crypto)
+mark_as_advanced(OPENSSL_CRYPTO_LIBRARY)
+
+include_directories(${'$'}{GRPC_DIR} ${'$'}{OPENSSL_INCLUDE_DIR})
+
+<%!
+def get_deps(target):
+    deps = []
+    if target.secure:
+        deps.extend(['${OPENSSL_SSL_LIBRARY}', '${OPENSSL_CRYPTO_LIBRARY}'])
+    if target.build == 'protoc':
+        deps.append('libprotoc')
+        deps.append('libprotobuf')
+    if target.name == 'grpc++':
+        deps.append('libprotobuf')
+    for d in target.deps:
+       deps.append(d)
+    return deps
+%>
+
+
+% for lib in libs.values():
+${cc_library(lib)}
+% endfor
+
+% for tgt in targets.values():
+${cc_binary(tgt)}
+% endfor
+
+<%def name='cc_library(lib)'>
+add_library(${lib.name} STATIC
+% for src in lib.src:
+    ${'$'}{GRPC_DIR}/${src}
+% endfor
+)
+
+target_link_libraries(${lib.name}
+% for dep in get_deps(lib):
+    ${dep}
+% endfor
+)
+target_include_directories(${lib.name} PUBLIC
+    ${'$'}{GRPC_INCLUDE_DIR}
+    ${'$'}{PROTOBUF_INCLUDE_DIR}
+)
+</%def>
+
+<%def name='cc_binary(tgt)'>
+add_executable(${tgt.name}
+% for src in tgt.src:
+    ${src}
+% endfor
+)
+target_link_libraries(${tgt.name}
+% for dep in get_deps(tgt):
+    ${dep}
+% endfor
+)
+</%def>
