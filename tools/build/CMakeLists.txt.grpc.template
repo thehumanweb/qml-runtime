@@ -20,11 +20,14 @@ mark_as_advanced(OPENSSL_SSL_LIBRARY)
 find_library(OPENSSL_CRYPTO_LIBRARY NAMES crypto)
 mark_as_advanced(OPENSSL_CRYPTO_LIBRARY)
 
+find_library(ZLIB_LIBRARY z)
+mark_as_advanced(ZLIB_LIBRARY)
+
 include_directories(${'$'}{GRPC_DIR} ${'$'}{OPENSSL_INCLUDE_DIR})
 
 <%!
 def get_deps(target):
-    deps = []
+    deps = ['${ZLIB_LIBRARY}']
     if target.secure:
         deps.extend(['${OPENSSL_SSL_LIBRARY}', '${OPENSSL_CRYPTO_LIBRARY}'])
     if target.build == 'protoc':

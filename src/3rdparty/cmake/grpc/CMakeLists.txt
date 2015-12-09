@@ -20,6 +20,9 @@ mark_as_advanced(OPENSSL_SSL_LIBRARY)
 find_library(OPENSSL_CRYPTO_LIBRARY NAMES crypto)
 mark_as_advanced(OPENSSL_CRYPTO_LIBRARY)
 
+find_library(ZLIB_LIBRARY z)
+mark_as_advanced(ZLIB_LIBRARY)
+
 include_directories(${GRPC_DIR} ${OPENSSL_INCLUDE_DIR})
 
 
@@ -62,6 +65,7 @@ add_library(grpc++ STATIC
 )
 
 target_link_libraries(grpc++
+    ${ZLIB_LIBRARY}
     libprotobuf
     gpr
     grpc
@@ -217,6 +221,7 @@ add_library(grpc STATIC
 )
 
 target_link_libraries(grpc
+    ${ZLIB_LIBRARY}
     ${OPENSSL_SSL_LIBRARY}
     ${OPENSSL_CRYPTO_LIBRARY}
     gpr
@@ -268,6 +273,7 @@ add_library(gpr STATIC
 )
 
 target_link_libraries(gpr
+    ${ZLIB_LIBRARY}
 )
 target_include_directories(gpr PUBLIC
     ${GRPC_INCLUDE_DIR}
