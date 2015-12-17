@@ -281,6 +281,36 @@ target_include_directories(gpr PUBLIC
 )
 
 
+add_library(grpc_plugin_support STATIC
+    ${GRPC_DIR}/src/compiler/cpp_generator.cc
+    ${GRPC_DIR}/src/compiler/csharp_generator.cc
+    ${GRPC_DIR}/src/compiler/objective_c_generator.cc
+    ${GRPC_DIR}/src/compiler/python_generator.cc
+    ${GRPC_DIR}/src/compiler/ruby_generator.cc
+)
+
+target_link_libraries(grpc_plugin_support
+    ${ZLIB_LIBRARY}
+    libprotoc
+    libprotobuf
+)
+target_include_directories(grpc_plugin_support PUBLIC
+    ${GRPC_INCLUDE_DIR}
+    ${PROTOBUF_INCLUDE_DIR}
+)
+
+
+
+add_executable(grpc_cpp_plugin
+    ${GRPC_DIR}/src/compiler/cpp_plugin.cc
+)
+target_link_libraries(grpc_cpp_plugin
+    ${ZLIB_LIBRARY}
+    libprotoc
+    libprotobuf
+    grpc_plugin_support
+)
+
 
 
 

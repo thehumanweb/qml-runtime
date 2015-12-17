@@ -50,8 +50,7 @@ def createGrpcCmake():
     'libs': {},
   }
   collect_grpc_targets(acc, dic, 'grpc++')
-  # TODO enable cpp plugin
-  # collect_grpc_targets(acc, dic, 'grpc_cpp_plugin', True)
+  collect_grpc_targets(acc, dic, 'grpc_cpp_plugin', True)
 
   cmake_template = os.path.join(TOOLS_DIR, 'CMakeLists.txt.grpc.template')
   cmake_out = os.path.join(GRPC_CMAKE_DIR, 'CMakeLists.txt')
