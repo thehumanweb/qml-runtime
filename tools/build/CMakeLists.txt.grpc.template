@@ -70,7 +70,7 @@ target_include_directories(${lib.name} PUBLIC
 <%def name='cc_binary(tgt)'>
 add_executable(${tgt.name}
 % for src in tgt.src:
-    ${src}
+    ${'$'}{GRPC_DIR}/${src}
 % endfor
 )
 target_link_libraries(${tgt.name}
