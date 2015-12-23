@@ -24,6 +24,11 @@ set(${PROJECT_NAME}_SRCS
     qmlruntime.cpp
     qmlruntimefactory.cpp
     qmlmodule.cpp
+    safeloader.cpp
+)
+
+set(${PROJECT_NAME}_Qml_SRCS
+    preload.qml
 )
 
 qt5_add_resources(${PROJECT_NAME}_Res_SRCS
@@ -32,6 +37,7 @@ qt5_add_resources(${PROJECT_NAME}_Res_SRCS
 
 add_library(${PROJECT_NAME} STATIC
     ${${PROJECT_NAME}_SRCS}
+    ${${PROJECT_NAME}_Qml_SRCS}
     ${${PROJECT_NAME}_Res_SRCS}
 )
 qt5_use_modules(${PROJECT_NAME} Core Qml Quick)

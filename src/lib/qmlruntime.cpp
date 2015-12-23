@@ -16,11 +16,9 @@
 * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 */
 
-#include <QQmlEngine>
 #include <QQmlComponent>
-#include <QQmlContext>
 #include <QLoggingCategory>
-#include <QtCore/QCoreApplication>
+#include <QCoreApplication>
 
 #include "customnetworkaccessmanager.h"
 #include "ipfsonlyurlinterceptor.h"
@@ -118,7 +116,8 @@ void QmlRuntime::create()
         return;
     }
 
-    QObjectPtr<QObject> object (m_component->create(m_engine->rootContext()));
+    m_context.reset(new QQmlContext(m_engine->rootContext()));
+    QObjectPtr<QObject> object (m_component->create(m_context.get()));
     if (!object) {
         setStatus(Status::Error);
         qWarning(logger) << "Failed to create application object";

@@ -2,5 +2,8 @@
     <qresource prefix="/tests">
         <file>preload.qml</file>
         <file>preload-fail.qml</file>
+        <file>SafeLoaderTestParent.qml</file>
+        <file>SafeLoaderTestChild.qml</file>
+        <file>SafeLoaderTestChildFail.qml</file>
     </qresource>
 </RCC>

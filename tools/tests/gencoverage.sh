@@ -13,6 +13,6 @@ lcov -r lcov.da "*moc*" -o lcov.da
 lcov -r lcov.da "*qrc*" -o lcov.da
 lcov -r lcov.da "/usr/include/*" -o lcov.da
 lcov -r lcov.da "*3rdparty*" -o lcov.da
-lcov -r lcov.da "tst*" -o lcov.da
+lcov -r lcov.da "*tst*" -o lcov.da
 genhtml -o report/cpp --function-coverage -t "QML-Runtime" --demangle-cpp lcov.da
 mv lcov.da report/cpp/lcov.da

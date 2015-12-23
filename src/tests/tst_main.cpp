@@ -19,6 +19,9 @@
 #include <gtest/gtest.h>
 #include <QGuiApplication>
 #include <QLoggingCategory>
+#include <qqml.h>
+#include "safeloader.h"
+#include "safeloadertesthelper.h"
 
 // Wrapper object used to wrap gtest around the Qt event loop
 class WrapperObject: public QObject
@@ -61,6 +64,9 @@ int main(int argc, char **argv)
     QLoggingCategory::setFilterRules(FILTER_RULES);
 
     QGuiApplication app (argc, argv);
+    qmlRegisterType<SafeLoader>("testing", 1, 0, "SafeLoader");
+    qmlRegisterType<SafeLoaderTestHelper>("testing", 1, 0, "SafeLoaderTestHelper");
+
     WrapperObject object {argc, argv};
     object.run();
     return app.exec();

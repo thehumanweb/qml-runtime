@@ -1,6 +1,6 @@
-/* 
-* Copyright (C) 2015 Siteshwar Vashisht <siteshwar@gmail.com>
-* 
+/*
+* Copyright (C) 2015 Lucien Xu <sfietkonstantin@free.fr>
+*
 * This library is free software; you can redistribute it and/or modify it
 * under the terms of the GNU Lesser General Public License as published by
 * the Free Software Foundation; either version 2.1 of the License, or
@@ -16,48 +16,50 @@
 * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 */
 
-#ifndef QMLRUNTIME_H
-#define QMLRUNTIME_H
+#ifndef SAFELOADER_HPP
+#define SAFELOADER_HPP
 
-#include <QObject>
-#include <QQmlEngine>
+#include <QQuickItem>
+#include <QQmlComponent>
 #include <QQmlContext>
-#include <QQmlNetworkAccessManagerFactory>
 #include "qobjectptr.h"
-#include "ilockableurlinterceptor.h"
 
-class QmlRuntime: public QObject
+class SafeLoader : public QQuickItem
 {
     Q_OBJECT
-
-    Q_PROPERTY(QObject * object READ object NOTIFY objectChanged)
+    Q_PROPERTY(Status status READ status NOTIFY statusChanged)
+    Q_PROPERTY(QUrl source READ source WRITE setSource NOTIFY sourceChanged)
+    Q_ENUMS(Status)
 public:
-    enum class Status {
+    enum Status
+    {
         Null,
         Ready,
         Loading,
         Error
     };
-    using Ptr = std::unique_ptr<QmlRuntime>;
-    QmlRuntime(std::unique_ptr<ILockableUrlInterceptor> &&urlInterceptor,
-               std::unique_ptr<QQmlNetworkAccessManagerFactory> &&networkAccessManagerFactory);
-    QObject * object() const;
+    explicit SafeLoader(QQuickItem *parent = 0);
+    void componentComplete() override;
     Status status() const;
-    bool preload(const QUrl &url);
-    void execute(const QUrl &url);
+    QUrl source() const;
+    void setSource(const QUrl &source);
 signals:
-    void objectChanged();
     void statusChanged();
+    void sourceChanged();
+    void finished(bool ok);
+protected:
+    bool event(QEvent *e) override;
 private:
-    void create();
+    void deferNull();
+    void deferCreation();
     void setStatus(Status status);
-    std::unique_ptr<ILockableUrlInterceptor> m_urlInterceptor {};
-    std::unique_ptr<QQmlNetworkAccessManagerFactory> m_networkAccessManagerFactory {};
-    QObjectPtr<QQmlEngine> m_engine {};
+    void load();
+    void createObject();
+    QUrl m_source;
+    Status m_status {Null};
     QObjectPtr<QQmlContext> m_context {};
-    QQmlComponent *m_component {nullptr};
-    Status m_status {Status::Null};
+    QObjectPtr<QQmlComponent> m_component {};
     QObjectPtr<QObject> m_object {};
 };
 
-#endif
+#endif // SAFELOADER_HPP
